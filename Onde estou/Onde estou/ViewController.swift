@@ -11,6 +11,10 @@ import MapKit
 class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate {
     
     @IBOutlet weak var mapView: MKMapView!
+    @IBOutlet weak var velocityLabel: UILabel!
+    @IBOutlet weak var latitudeLabel: UILabel!
+    @IBOutlet weak var longitudeLabel: UILabel!
+    @IBOutlet weak var addressLabel: UILabel!
     
     private var locationManager = CLLocationManager()
     
@@ -33,25 +37,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             print("Status: restricted")
         case .denied:
             print("Status: denied")
-            let alertController = UIAlertController(title: "Permissão de localização",
-                                                    message: "Necessário permissão para à sua localização!",
-                                                    preferredStyle: .actionSheet)
-            let configurationAction = UIAlertAction(title: "Abrir configurações",
-                                                    style: .default) { (action) in
-                
-                if let bundleId = Bundle.main.bundleIdentifier,
-                   let url = URL(string: "\(UIApplication.openSettingsURLString)&path=LOCATION/\(bundleId)"), UIApplication.shared.canOpenURL(url)
-                {
-                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
-                }
-            }
-            
-            let cancelAction = UIAlertAction(title: "Cancelar",
-                                             style: .default, handler: nil)
-            
-            alertController.addAction(configurationAction)
-            alertController.addAction(cancelAction)
-            present(alertController, animated: true, completion: nil)
+            showRequestPermissionLocation()
         case .authorizedAlways:
             print("Status: authorizedAlways")
         case .authorizedWhenInUse:
@@ -62,13 +48,38 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         }
     }
     
+    private func showRequestPermissionLocation() {
+        let alertController = UIAlertController(title: "Permissão de localização",
+                                                message: "Necessário permissão para à sua localização!",
+                                                preferredStyle: .actionSheet)
+        let configurationAction = UIAlertAction(title: "Abrir configurações",
+                                                style: .default) { (action) in
+            
+            if let bundleId = Bundle.main.bundleIdentifier,
+               let url = URL(string: "\(UIApplication.openSettingsURLString)&path=LOCATION/\(bundleId)"), UIApplication.shared.canOpenURL(url)
+            {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            }
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancelar", style: .default, handler: nil)
+        
+        alertController.addAction(configurationAction)
+        alertController.addAction(cancelAction)
+        present(alertController, animated: true, completion: nil)
+    }
+    
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        //        if  let location = locations.last{
-        //            let latitude: CLLocationDegrees = location.coordinate.latitude
-        //            let longitude: CLLocationDegrees = location.coordinate.longitude
-        //
-        //            applyLocation(latitude: latitude, longitude: longitude)
-        //        }
+        if  let location = locations.last{
+            let latitude: CLLocationDegrees = location.coordinate.latitude
+            let longitude: CLLocationDegrees = location.coordinate.longitude
+            
+            longitudeLabel.text = String(longitude)
+            latitudeLabel.text = String(latitude)
+            velocityLabel.text = String(location.speed)
+            
+            applyLocation(latitude: latitude, longitude: longitude)
+        }
     }
     
     private func initMap() {
